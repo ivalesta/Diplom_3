@@ -1,40 +1,25 @@
-import driver.Driver;
+import driver.DriverProvider;
 import io.qameta.allure.junit4.DisplayName;
 import jdk.jfr.Description;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobject.PageObjectMain;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.time.Duration;
 
-@RunWith(Parameterized.class)
+import static org.junit.Assert.assertTrue;
+
 public class ConstructorTest {
     WebDriver driver;
-    String browser;
-    Driver driverWrapper;
     PageObjectMain mainStellarBurgers;
-
-    public ConstructorTest (String browser){
-        this.browser = browser;
-    }
-
-    @Parameterized.Parameters(name = "browser")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"chrome"},
-                {"yandex"}
-        });
-    }
 
     @Before
     public void setUp() {
-        driverWrapper = new Driver(browser);
-        driver = driverWrapper.getDriver();
+        DriverProvider driverProvider = new DriverProvider();
+        driver = driverProvider.getDriver();
 
         mainStellarBurgers = new PageObjectMain(driver);
     }
@@ -49,8 +34,12 @@ public class ConstructorTest {
         System.out.println("Главная страница открыта");
         mainStellarBurgers.clickSauceSection();
         System.out.println("Переход на вкладку Соусы");
-        mainStellarBurgers.headerSauceIsVisible();
-        System.out.println("Проверка видимости заголовка Соусы");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(driver -> driver.findElement(mainStellarBurgers.sectionSauceActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+        assertTrue("Вкладка не активна", driver.findElement(mainStellarBurgers.sectionSauceActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+
+        System.out.println("Раздел Соусы активен");
         System.out.println("   ");
     }
 
@@ -66,8 +55,12 @@ public class ConstructorTest {
         System.out.println("Переход на вкладку Соусы");
         mainStellarBurgers.clickBunSection();
         System.out.println("Переход на вкладку Булки");
-        mainStellarBurgers.headerBunIsVisible();
-        System.out.println("Проверка видимости заголовка Булки");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(driver -> driver.findElement(mainStellarBurgers.sectionBunActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+        assertTrue("Вкладка не активна", driver.findElement(mainStellarBurgers.sectionBunActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+
+        System.out.println("Раздел Булки активен");
         System.out.println("   ");
     }
 
@@ -81,8 +74,12 @@ public class ConstructorTest {
         System.out.println("Главная страница открыта");
         mainStellarBurgers.clickFillingSection();
         System.out.println("Переход на вкладку Начинки");
-        mainStellarBurgers.headerFillingIsVisible();
-        System.out.println("Проверка видимости заголовка Начинки");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(driver -> driver.findElement(mainStellarBurgers.sectionFillingActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+        assertTrue("Вкладка не активна", driver.findElement(mainStellarBurgers.sectionFillingActive).getAttribute("class").contains(mainStellarBurgers.ACTIVE_SECTION));
+
+        System.out.println("Раздел Начинки активен");
         System.out.println("   ");
     }
 

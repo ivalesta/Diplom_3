@@ -1,50 +1,52 @@
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import jdk.jfr.Description;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.openqa.selenium.WebDriver;
-import driver.Driver;
+import driver.DriverProvider;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobject.PageObjectLogin;
 import pageobject.PageObjectMain;
 import pageobject.PageObjectRegistration;
+import ru.practicum.LoginOperations;
+import ru.practicum.basis.Constants;
+import ru.practicum.basis.UserBasis;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.time.Duration;
 
+import static org.junit.Assert.assertTrue;
 
-@RunWith(Parameterized.class)
 public class RegistrationTest {
     WebDriver driver;
-    String browser;
-    Driver driverWrapper;
     PageObjectMain mainStellarBurgers;
     PageObjectLogin enterStellarBurgers;
     PageObjectRegistration registrationStellarBurgers;
 
-    public RegistrationTest (String browser){
-        this.browser = browser;
-    }
+    PageObjectLogin constantsPathLogin;
+    PageObjectRegistration constantsPathReg;
 
-    @Parameterized.Parameters(name = "browser")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"chrome"},
-                {"yandex"}
-        });
-    }
+    String accessToken;
+    LoginOperations userCreate;
+    UserBasis user;
+    Constants constants = new Constants();
 
     @Before
     public void setUp() {
-        driverWrapper = new Driver(browser);
-        driver = driverWrapper.getDriver();
+        DriverProvider driverProvider = new DriverProvider();
+        driver = driverProvider.getDriver();
 
         mainStellarBurgers = new PageObjectMain(driver);
         enterStellarBurgers = new PageObjectLogin(driver);
         registrationStellarBurgers = new PageObjectRegistration(driver);
+
+        RestAssured.baseURI = constants.BASE_URL;
+        userCreate = new LoginOperations();
     }
 
     @Test
@@ -66,9 +68,19 @@ public class RegistrationTest {
         System.out.println("Поля заполнены");
         registrationStellarBurgers.clickRegisterButton();
         System.out.println("Кнопка регистрации нажата");
-        enterStellarBurgers.checkRegistrationSuccess();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(enterStellarBurgers.headerEnter));
+        assertTrue(header.isDisplayed());
+
         System.out.println("Заголовок Вход появился");
         System.out.println("   ");
+
+        user = new UserBasis(name, email, password);
+        Response response = userCreate.sendPostRequestLoginUser(user);
+        if(response.path("accessToken") != null) {
+            accessToken = response.then().extract().path("accessToken").toString();
+        }
     }
 
     @Test
@@ -90,15 +102,28 @@ public class RegistrationTest {
         System.out.println("Поля заполнены");
         registrationStellarBurgers.clickRegisterButton();
         System.out.println("Кнопка регистрации нажата");
-        registrationStellarBurgers.findErrorMessage();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(registrationStellarBurgers.shortPasswordError));
+        assertTrue(errorMessage.isDisplayed());
+
         System.out.println("Сообщение об ошибке появилось");
         System.out.println("   ");
+
+        user = new UserBasis(name, email, password);
+        Response response = userCreate.sendPostRequestLoginUser(user);
+        if(response.path("accessToken") != null) {
+            accessToken = response.then().extract().path("accessToken").toString();
+        }
     }
 
     @After
     public void tearDown() {
         if (driver != null) {
             driver.quit();
+        }
+        if (accessToken != null) {
+            userCreate.sendDeleteRequestUser(accessToken);
         }
     }
 }

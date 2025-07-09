@@ -1,47 +1,60 @@
-import driver.Driver;
+import driver.DriverProvider;
 import io.qameta.allure.junit4.DisplayName;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import jdk.jfr.Description;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import pageobject.PageObjectLogin;
 import pageobject.PageObjectMain;
 import pageobject.PageObjectPassRecovery;
 import pageobject.PageObjectRegistration;
+import ru.practicum.LoginOperations;
+import ru.practicum.basis.Constants;
+import ru.practicum.basis.UserBasis;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.time.Duration;
 
-@RunWith(Parameterized.class)
+import static org.junit.Assert.assertTrue;
+
 public class AuthorizationTest {
     WebDriver driver;
-    String browser;
-    Driver driverWrapper;
     PageObjectMain mainStellarBurgers;
     PageObjectLogin enterStellarBurgers;
     PageObjectRegistration registrationStellarBurgers;
     PageObjectPassRecovery passRecoveryStellarBurgers;
+    LoginOperations userCreate;
+    UserBasis user;
+    Constants constants = new Constants();
+    private String accessToken;
+    String name;
+    String email;
+    String password;
 
-    public AuthorizationTest (String browser){
-        this.browser = browser;
-    }
-
-    @Parameterized.Parameters(name = "browser")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"chrome"},
-                {"yandex"}
-        });
-    }
 
     @Before
     public void setUp() {
-        driverWrapper = new Driver(browser);
-        driver = driverWrapper.getDriver();
+        DriverProvider driverProvider = new DriverProvider();
+        driver = driverProvider.getDriver();
+
+        RestAssured.baseURI = constants.BASE_URL;
+
+        userCreate = new LoginOperations();
+        name = RandomStringUtils.randomAlphanumeric(6, 10);
+        email = RandomStringUtils.randomAlphanumeric(6, 10) + "@yandex.ru";
+        password = RandomStringUtils.randomAlphabetic(6, 10);
+
+        user = new UserBasis(name, email, password);
+
+        Response response = userCreate.sendPostRequestCreateUser(user);
+        accessToken = response.then().extract().path("accessToken").toString();
 
         mainStellarBurgers = new PageObjectMain(driver);
         enterStellarBurgers = new PageObjectLogin(driver);
@@ -53,26 +66,19 @@ public class AuthorizationTest {
     @DisplayName("Успешный вход с главной страницы. Авторизация по кнопке Войти в аккаунт")
     @Description("После успешной авторизации открывается главная страница")
     public void mainPageLoginTest() {
-        String name = RandomStringUtils.randomAlphanumeric(6, 10);
-        String email = RandomStringUtils.randomAlphanumeric(6, 10) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphabetic(6, 10);
-
-        System.out.println("Регистрация пользователя, чтобы была возможность авторизации");
+        System.out.println("Начало проверки, открывается сайт Stellar Burgers");
         mainStellarBurgers.openMain();
-        mainStellarBurgers.openPersonalAccount();
-        enterStellarBurgers.clickRegistrationButton();
-        registrationStellarBurgers.sendRegistrationParam(name, email, password);
-        registrationStellarBurgers.clickRegisterButton();
-        System.out.println("Пользователь зарегистрирован");
-        enterStellarBurgers.clickConstructorButton();
-        System.out.println("Возвращение на главную страницу");
         mainStellarBurgers.openEnterPage();
         System.out.println("Кнопка Войти в аккаунт нажата");
         enterStellarBurgers.sendRegistrationParam(email, password);
         System.out.println("Поля заполнены");
         enterStellarBurgers.clickLoginButton();
         System.out.println("Кнопка Войти нажата");
-        mainStellarBurgers.checkMainLoginButton();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(mainStellarBurgers.buttonOrderCreate));
+        assertTrue(header.isDisplayed());
+
         System.out.println("Открылась главная страница");
         System.out.println("   ");
     }
@@ -81,47 +87,37 @@ public class AuthorizationTest {
     @DisplayName("Успешный вход из Личного Кабинета")
     @Description("После успешной авторизации открывается главная страница")
     public void personalAccountLoginTest() {
-        String name = RandomStringUtils.randomAlphanumeric(6, 10);
-        String email = RandomStringUtils.randomAlphanumeric(6, 10) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphabetic(6, 10);
-
-        System.out.println("Регистрация пользователя, чтобы была возможность авторизации");
+        System.out.println("Начало проверки, открывается сайт Stellar Burgers");
         mainStellarBurgers.openMain();
-        mainStellarBurgers.openPersonalAccount();
-        enterStellarBurgers.clickRegistrationButton();
-        registrationStellarBurgers.sendRegistrationParam(name, email, password);
-        registrationStellarBurgers.clickRegisterButton();
-        System.out.println("Пользователь зарегистрирован");
-        enterStellarBurgers.clickConstructorButton();
-        System.out.println("Возвращение на главную страницу");
         mainStellarBurgers.openPersonalAccount();
         System.out.println("Кнопка Личный кабинет нажата");
         enterStellarBurgers.sendRegistrationParam(email, password);
         System.out.println("Поля заполнены");
         enterStellarBurgers.clickLoginButton();
         System.out.println("Кнопка Войти нажата");
-        mainStellarBurgers.checkMainLoginButton();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(mainStellarBurgers.buttonOrderCreate));
+        assertTrue(header.isDisplayed());
+
         System.out.println("Открылась главная страница");
         System.out.println("   ");
+
+        Response response = userCreate.sendPostRequestLoginUser(user);
+        response.then().log().all()
+                .assertThat().statusCode(200).and().body( "success", Matchers.is(true));
+
+        if(response.path("accessToken") != null) {
+            accessToken = response.then().extract().path("accessToken").toString();
+        }
     }
 
     @Test
     @DisplayName("Успешный вход со страницы регистрации")
     @Description("После успешной авторизации открывается главная страница")
     public void registrationPageLoginTest() {
-        String name = RandomStringUtils.randomAlphanumeric(6, 10);
-        String email = RandomStringUtils.randomAlphanumeric(6, 10) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphabetic(6, 10);
-
-        System.out.println("Регистрация пользователя, чтобы была возможность авторизации");
+        System.out.println("Начало проверки, открывается сайт Stellar Burgers");
         mainStellarBurgers.openMain();
-        mainStellarBurgers.openPersonalAccount();
-        enterStellarBurgers.clickRegistrationButton();
-        registrationStellarBurgers.sendRegistrationParam(name, email, password);
-        registrationStellarBurgers.clickRegisterButton();
-        System.out.println("Пользователь зарегистрирован");
-        enterStellarBurgers.clickConstructorButton();
-        System.out.println("Возвращение на главную страницу");
         mainStellarBurgers.openPersonalAccount();
         System.out.println("Кнопка Личный кабинет нажата");
         enterStellarBurgers.clickRegistrationButton();
@@ -132,7 +128,11 @@ public class AuthorizationTest {
         System.out.println("Поля заполнены");
         enterStellarBurgers.clickLoginButton();
         System.out.println("Кнопка Войти на странице авторизации нажата");
-        mainStellarBurgers.checkMainLoginButton();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(mainStellarBurgers.buttonOrderCreate));
+        assertTrue(header.isDisplayed());
+
         System.out.println("Открылась главная страница");
         System.out.println("   ");
     }
@@ -141,19 +141,8 @@ public class AuthorizationTest {
     @DisplayName("Успешный вход со страницы восстановления пароля")
     @Description("После успешной авторизации открывается главная страница")
     public void passwordRecoveryLoginTest() {
-        String name = RandomStringUtils.randomAlphanumeric(6, 10);
-        String email = RandomStringUtils.randomAlphanumeric(6, 10) + "@yandex.ru";
-        String password = RandomStringUtils.randomAlphabetic(6, 10);
-
-        System.out.println("Регистрация пользователя, чтобы была возможность авторизации");
+        System.out.println("Начало проверки, открывается сайт Stellar Burgers");
         mainStellarBurgers.openMain();
-        mainStellarBurgers.openPersonalAccount();
-        enterStellarBurgers.clickRegistrationButton();
-        registrationStellarBurgers.sendRegistrationParam(name, email, password);
-        registrationStellarBurgers.clickRegisterButton();
-        System.out.println("Пользователь зарегистрирован");
-        enterStellarBurgers.clickConstructorButton();
-        System.out.println("Возвращение на главную страницу");
         mainStellarBurgers.openPersonalAccount();
         System.out.println("Кнопка Личный кабинет нажата, переход на страницу авторизации");
         enterStellarBurgers.clickPassRecoveryButton();
@@ -164,7 +153,11 @@ public class AuthorizationTest {
         System.out.println("Поля заполнены");
         enterStellarBurgers.clickLoginButton();
         System.out.println("Кнопка Войти на странице авторизации нажата");
-        mainStellarBurgers.checkMainLoginButton();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(mainStellarBurgers.buttonOrderCreate));
+        assertTrue(header.isDisplayed());
+
         System.out.println("Открылась главная страница");
         System.out.println("   ");
     }
@@ -173,6 +166,9 @@ public class AuthorizationTest {
     public void tearDown() {
         if (driver != null) {
             driver.quit();
+        }
+        if (accessToken != null) {
+            userCreate.sendDeleteRequestUser(accessToken);
         }
     }
 }

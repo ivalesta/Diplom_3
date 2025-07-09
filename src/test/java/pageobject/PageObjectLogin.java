@@ -1,14 +1,12 @@
 package pageobject;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-
-import static org.junit.Assert.assertTrue;
 
 public class PageObjectLogin {
     WebDriver driver;
@@ -34,42 +32,28 @@ public class PageObjectLogin {
 
 
     //Методы
-    //Нажать кнопку "Зарегистрироваться" на странице авторизации
+    @Step("Нажать кнопку Зарегистрироваться на странице авторизации")
     public void clickRegistrationButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(registerUserButton));
         driver.findElement(registerUserButton).click();
     }
 
-    //Нажать кнопку "Конструктор" — возвращение на главную
-    public void clickConstructorButton() {
-        new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.elementToBeClickable(buttonConstructor));
-        driver.findElement(buttonConstructor).click();
-    }
-
-    //Нажать кнопку "Войти" на странице авторизации
+    @Step("Нажать кнопку Войти на странице авторизации")
     public void clickLoginButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(buttonLogIn));
         driver.findElement(buttonLogIn).click();
     }
 
-    //Нажать кнопку "Восстановить пароль" на странице авторизации
+    @Step("Нажать кнопку Восстановить пароль на странице авторизации")
     public void clickPassRecoveryButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(buttonPassRecovery));
         driver.findElement(buttonPassRecovery).click();
     }
 
-    //Проверка открытия страницы авторизации: появляется заголовок "Вход"
-    public void checkRegistrationSuccess() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement header = wait.until(ExpectedConditions.visibilityOfElementLocated(headerEnter));
-        assertTrue(header.isDisplayed());
-    }
-
-    //Заполнить поля данными на странице авторизации
+    @Step("Заполнить поля данными на странице авторизации")
     public void sendRegistrationParam(String email, String password) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 

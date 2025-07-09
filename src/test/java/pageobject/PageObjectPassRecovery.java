@@ -1,5 +1,6 @@
 package pageobject;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -19,7 +20,7 @@ public class PageObjectPassRecovery {
     public final By buttonLogin = By.xpath(".//a[text()='Войти']");
 
     //Методы
-    //Нажать кнопку "Войти" на странице восстановления пароля
+    @Step("Нажать кнопку Войти на странице восстановления пароля")
     public void clickLoginButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(buttonLogin));

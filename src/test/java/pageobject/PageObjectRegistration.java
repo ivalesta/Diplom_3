@@ -1,14 +1,12 @@
 package pageobject;
 
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-
-import static org.junit.Assert.assertTrue;
 
 public class PageObjectRegistration {
     WebDriver driver;
@@ -30,7 +28,7 @@ public class PageObjectRegistration {
     public final By shortPasswordError = By.xpath(".//p[text()='Некорректный пароль']");
 
     //Методы
-    //Заполнить поля данными на странице регистрации
+    @Step("Заполнить поля данными на странице регистрации")
     public void sendRegistrationParam(String name, String email, String password) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
@@ -39,24 +37,17 @@ public class PageObjectRegistration {
         wait.until(ExpectedConditions.visibilityOfElementLocated(passwordRegField)).sendKeys(password);
     }
 
-    //Нажать кнопку "Зарегистрироваться" на странице регистрации
+    @Step("Нажать кнопку Зарегистрироваться на странице регистрации")
     public void clickRegisterButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(registrationButton));
         driver.findElement(registrationButton).click();
     }
 
-    //Нажать кнопку "Зарегистрироваться" на странице регистрации
+    @Step("Нажать кнопку Зарегистрироваться на странице регистрации")
     public void clickEnterButton() {
         new WebDriverWait(driver, Duration.ofSeconds(10))
                 .until(ExpectedConditions.elementToBeClickable(buttonLogin));
         driver.findElement(buttonLogin).click();
-    }
-
-    //Найти сообщение об ошибке на странице регистрации
-    public void findErrorMessage() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(shortPasswordError));
-        assertTrue(errorMessage.isDisplayed());
     }
 }
